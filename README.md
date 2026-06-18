@@ -18,6 +18,19 @@ A simplified, full-stack Inventory & Order Management System for managing
 | **GitHub Repository** | https://github.com/sidverma247/inventory-order-system |
 | **Docker Hub (backend image)** | https://hub.docker.com/r/sidv24/inventory-backend |
 
+### 🐳 Docker Image
+
+The backend is published as a public Docker image — pull and run it directly:
+
+```bash
+docker pull sidv24/inventory-backend:latest
+docker run -p 8000:8000 \
+  -e DATABASE_URL=postgresql+psycopg://user:pass@host:5432/inventory \
+  sidv24/inventory-backend:latest
+```
+
+Image: **`sidv24/inventory-backend:latest`** · https://hub.docker.com/r/sidv24/inventory-backend
+
 > The backend runs on Render's free tier and sleeps when idle — the first
 > request after inactivity may take ~30–50s to wake up, then it's fast.
 
