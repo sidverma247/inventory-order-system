@@ -5,10 +5,10 @@ import Customers from './components/Customers.jsx'
 import Orders from './components/Orders.jsx'
 
 const TABS = [
-  { key: 'dashboard', label: 'Dashboard' },
-  { key: 'products', label: 'Products' },
-  { key: 'customers', label: 'Customers' },
-  { key: 'orders', label: 'Orders' },
+  { key: 'dashboard', label: 'Dashboard', icon: '📊' },
+  { key: 'products', label: 'Products', icon: '📦' },
+  { key: 'customers', label: 'Customers', icon: '👥' },
+  { key: 'orders', label: 'Orders', icon: '🧾' },
 ]
 
 export default function App() {
@@ -17,15 +17,21 @@ export default function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>Inventory &amp; Order Management</h1>
-        <nav className="tabs">
+        <div className="brand">
+          <span className="brand-mark">📦</span>
+          <h1>Inventory &amp; Order Management</h1>
+        </div>
+        <nav className="tabs" role="tablist">
           {TABS.map((t) => (
             <button
               key={t.key}
+              role="tab"
+              aria-selected={tab === t.key}
               className={tab === t.key ? 'tab active' : 'tab'}
               onClick={() => setTab(t.key)}
             >
-              {t.label}
+              <span className="tab-icon" aria-hidden="true">{t.icon}</span>
+              <span className="tab-label">{t.label}</span>
             </button>
           ))}
         </nav>
