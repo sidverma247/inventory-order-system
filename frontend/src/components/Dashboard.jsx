@@ -12,21 +12,25 @@ export default function Dashboard() {
   if (error) return <div className="error">{error}</div>
   if (!stats) return <p className="muted">Loading dashboard…</p>
 
+  const lowCount = stats.low_stock_products.length
   const cards = [
-    { label: 'Total Products', value: stats.total_products },
-    { label: 'Total Customers', value: stats.total_customers },
-    { label: 'Total Orders', value: stats.total_orders },
-    { label: 'Low Stock Items', value: stats.low_stock_products.length, alert: stats.low_stock_products.length > 0 },
+    { label: 'Total Products', value: stats.total_products, tone: 'blue', icon: '📦' },
+    { label: 'Total Customers', value: stats.total_customers, tone: 'green', icon: '👥' },
+    { label: 'Total Orders', value: stats.total_orders, tone: 'purple', icon: '🧾' },
+    { label: 'Low Stock Items', value: lowCount, tone: lowCount > 0 ? 'red' : 'amber', icon: '⚠️', alert: lowCount > 0 },
   ]
 
   return (
     <section>
-      <h2>Dashboard</h2>
+      <p className="page-subtitle">Overview of your inventory, customers and orders.</p>
       <div className="cards">
         {cards.map((c) => (
-          <div className={c.alert ? 'stat-card alert' : 'stat-card'} key={c.label}>
-            <div className="stat-value">{c.value}</div>
-            <div className="stat-label">{c.label}</div>
+          <div className={`stat-card tone-${c.tone}${c.alert ? ' alert' : ''}`} key={c.label}>
+            <span className="stat-icon" aria-hidden="true">{c.icon}</span>
+            <div className="stat-body">
+              <div className="stat-value">{c.value}</div>
+              <div className="stat-label">{c.label}</div>
+            </div>
           </div>
         ))}
       </div>

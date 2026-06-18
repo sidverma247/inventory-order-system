@@ -83,7 +83,7 @@ export default function Orders() {
 
   return (
     <section>
-      <h2>Orders</h2>
+      <p className="page-subtitle">Place orders against live stock. Cancelling restores inventory.</p>
       {error && <div className="error">{error}</div>}
       {info && <div className="success">{info}</div>}
 

@@ -21,7 +21,11 @@ def run() -> None:
                     Product(sku="SKU-002", name="Mechanical Keyboard", description="RGB keyboard",
                             price=Decimal("79.50"), stock_quantity=40),
                     Product(sku="SKU-003", name="USB-C Hub", description="7-in-1 hub",
-                            price=Decimal("39.00"), stock_quantity=15),
+                            price=Decimal("39.00"), stock_quantity=8),
+                    Product(sku="SKU-004", name="Laptop Stand", description="Aluminium stand",
+                            price=Decimal("49.99"), stock_quantity=3),
+                    Product(sku="SKU-005", name="Webcam 1080p", description="Full-HD webcam",
+                            price=Decimal("59.00"), stock_quantity=0),
                 ]
             )
         if db.query(Customer).count() == 0:

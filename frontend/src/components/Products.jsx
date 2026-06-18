@@ -74,7 +74,7 @@ export default function Products() {
 
   return (
     <section>
-      <h2>Products</h2>
+      <p className="page-subtitle">Add, edit and remove products. SKUs must be unique.</p>
       {error && <div className="error">{error}</div>}
 
       <form className="card form-grid" onSubmit={submit}>

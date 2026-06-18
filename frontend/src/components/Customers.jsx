@@ -57,7 +57,7 @@ export default function Customers() {
 
   return (
     <section>
-      <h2>Customers</h2>
+      <p className="page-subtitle">Manage your customers. Email addresses must be unique.</p>
       {error && <div className="error">{error}</div>}
 
       <form className="card form-grid" onSubmit={submit}>
