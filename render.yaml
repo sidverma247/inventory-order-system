@@ -1,0 +1,25 @@
+# Render Blueprint — one-click deploy of the backend API + PostgreSQL.
+# In the Render dashboard: New > Blueprint > connect this repo.
+# Deploy the frontend separately on Vercel/Netlify (see README) pointing
+# VITE_API_BASE_URL at the backend URL Render assigns.
+databases:
+  - name: inventory-db
+    plan: free
+    databaseName: inventory
+    user: inventory
+
+services:
+  - type: web
+    name: inventory-backend
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: inventory-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        sync: false   # set to your deployed frontend origin
