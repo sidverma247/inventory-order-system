@@ -9,6 +9,18 @@ A simplified, full-stack Inventory & Order Management System for managing
 - **Containerized:** Docker + Docker Compose
 - **Config:** environment variables only — no hard-coded credentials
 
+## 🔗 Live Demo & Links
+
+| | URL |
+|---|---|
+| **Live App (Frontend)** | https://inventory-order-system-fawn.vercel.app |
+| **Live API (Swagger docs)** | https://inventory-backend-epj4.onrender.com/docs |
+| **GitHub Repository** | https://github.com/sidverma247/inventory-order-system |
+| **Docker Hub (backend image)** | https://hub.docker.com/r/sidv24/inventory-backend |
+
+> The backend runs on Render's free tier and sleeps when idle — the first
+> request after inactivity may take ~30–50s to wake up, then it's fast.
+
 ---
 
 ## Features & Business Rules
