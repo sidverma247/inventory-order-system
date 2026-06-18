@@ -10,7 +10,7 @@ Business rules implemented here:
 from decimal import Decimal
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -152,3 +152,35 @@ def create_order(db: Session, data: schemas.OrderCreate) -> models.Order:
     db.commit()
     db.refresh(order)
     return order
+
+
+def delete_order(db: Session, order_id: int) -> None:
+    """Cancel an order, restoring each line item's quantity back to stock."""
+    order = get_order(db, order_id)
+    for item in order.items:
+        product = db.get(models.Product, item.product_id)
+        if product is not None:
+            product.stock_quantity += item.quantity
+    db.delete(order)
+    db.commit()
+
+
+# ---------- Dashboard ----------
+def stats(db: Session, low_stock_threshold: int) -> dict:
+    total_products = db.scalar(select(func.count()).select_from(models.Product))
+    total_customers = db.scalar(select(func.count()).select_from(models.Customer))
+    total_orders = db.scalar(select(func.count()).select_from(models.Order))
+    low_stock = list(
+        db.scalars(
+            select(models.Product)
+            .where(models.Product.stock_quantity <= low_stock_threshold)
+            .order_by(models.Product.stock_quantity)
+        )
+    )
+    return {
+        "total_products": total_products or 0,
+        "total_customers": total_customers or 0,
+        "total_orders": total_orders or 0,
+        "low_stock_threshold": low_stock_threshold,
+        "low_stock_products": low_stock,
+    }

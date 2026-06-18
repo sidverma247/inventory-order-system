@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from .. import crud, schemas
 from ..database import get_db
 
-router = APIRouter(prefix="/api/orders", tags=["orders"])
+router = APIRouter(prefix="/orders", tags=["orders"])
 
 
 @router.get("", response_model=list[schemas.OrderOut])
@@ -20,3 +20,9 @@ def get_order(order_id: int, db: Session = Depends(get_db)):
 @router.post("", response_model=schemas.OrderOut, status_code=status.HTTP_201_CREATED)
 def create_order(payload: schemas.OrderCreate, db: Session = Depends(get_db)):
     return crud.create_order(db, payload)
+
+
+@router.delete("/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_order(order_id: int, db: Session = Depends(get_db)):
+    """Cancel an order and return its reserved stock to inventory."""
+    crud.delete_order(db, order_id)

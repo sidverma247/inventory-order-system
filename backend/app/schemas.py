@@ -83,3 +83,12 @@ class OrderOut(BaseModel):
     total_amount: Decimal
     created_at: datetime
     items: list[OrderItemOut]
+
+
+# ---------- Dashboard ----------
+class StatsOut(BaseModel):
+    total_products: int
+    total_customers: int
+    total_orders: int
+    low_stock_threshold: int
+    low_stock_products: list[ProductOut]

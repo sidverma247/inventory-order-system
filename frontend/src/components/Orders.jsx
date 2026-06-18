@@ -68,6 +68,19 @@ export default function Orders() {
     }
   }
 
+  async function cancel(id) {
+    if (!confirm(`Cancel order #${id}? Stock will be restored.`)) return
+    setError('')
+    setInfo('')
+    try {
+      await OrdersAPI.remove(id)
+      setInfo(`Order #${id} cancelled — stock restored.`)
+      await load()
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
   return (
     <section>
       <h2>Orders</h2>
@@ -116,7 +129,7 @@ export default function Orders() {
       <div className="table-wrap">
         <table>
           <thead>
-            <tr><th>Order #</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr>
+            <tr><th>Order #</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr>
           </thead>
           <tbody>
             {orders.map((o) => {
@@ -128,10 +141,11 @@ export default function Orders() {
                   <td>{o.items.map((it) => `${productName(it.product_id)} ×${it.quantity}`).join(', ')}</td>
                   <td>${Number(o.total_amount).toFixed(2)}</td>
                   <td><span className="badge">{o.status}</span></td>
+                  <td><button className="link danger" onClick={() => cancel(o.id)}>Cancel</button></td>
                 </tr>
               )
             })}
-            {orders.length === 0 && <tr><td colSpan="5" className="muted">No orders yet.</td></tr>}
+            {orders.length === 0 && <tr><td colSpan="6" className="muted">No orders yet.</td></tr>}
           </tbody>
         </table>
       </div>

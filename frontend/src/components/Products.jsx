@@ -6,6 +6,7 @@ const EMPTY = { sku: '', name: '', description: '', price: '', stock_quantity: '
 export default function Products() {
   const [products, setProducts] = useState([])
   const [form, setForm] = useState(EMPTY)
+  const [editing, setEditing] = useState(null) // {id, name, price, stock_quantity}
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -46,6 +47,21 @@ export default function Products() {
     }
   }
 
+  async function saveEdit() {
+    setError('')
+    try {
+      await ProductsAPI.update(editing.id, {
+        name: editing.name.trim(),
+        price: Number(editing.price),
+        stock_quantity: Number(editing.stock_quantity),
+      })
+      setEditing(null)
+      await load()
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
   async function remove(id) {
     if (!confirm('Delete this product?')) return
     try {
@@ -73,19 +89,36 @@ export default function Products() {
       <div className="table-wrap">
         <table>
           <thead>
-            <tr><th>ID</th><th>SKU</th><th>Name</th><th>Price</th><th>Stock</th><th></th></tr>
+            <tr><th>ID</th><th>SKU</th><th>Name</th><th>Price</th><th>Stock</th><th>Actions</th></tr>
           </thead>
           <tbody>
-            {products.map((p) => (
-              <tr key={p.id}>
-                <td>{p.id}</td>
-                <td>{p.sku}</td>
-                <td>{p.name}</td>
-                <td>${Number(p.price).toFixed(2)}</td>
-                <td className={p.stock_quantity === 0 ? 'out' : ''}>{p.stock_quantity}</td>
-                <td><button className="link danger" onClick={() => remove(p.id)}>Delete</button></td>
-              </tr>
-            ))}
+            {products.map((p) =>
+              editing && editing.id === p.id ? (
+                <tr key={p.id}>
+                  <td>{p.id}</td>
+                  <td>{p.sku}</td>
+                  <td><input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></td>
+                  <td><input type="number" min="0" step="0.01" value={editing.price} onChange={(e) => setEditing({ ...editing, price: e.target.value })} /></td>
+                  <td><input type="number" min="0" step="1" value={editing.stock_quantity} onChange={(e) => setEditing({ ...editing, stock_quantity: e.target.value })} /></td>
+                  <td className="row-actions">
+                    <button className="link" onClick={saveEdit}>Save</button>
+                    <button className="link" onClick={() => setEditing(null)}>Cancel</button>
+                  </td>
+                </tr>
+              ) : (
+                <tr key={p.id}>
+                  <td>{p.id}</td>
+                  <td>{p.sku}</td>
+                  <td>{p.name}</td>
+                  <td>${Number(p.price).toFixed(2)}</td>
+                  <td className={p.stock_quantity === 0 ? 'out' : ''}>{p.stock_quantity}</td>
+                  <td className="row-actions">
+                    <button className="link" onClick={() => setEditing({ id: p.id, name: p.name, price: p.price, stock_quantity: p.stock_quantity })}>Edit</button>
+                    <button className="link danger" onClick={() => remove(p.id)}>Delete</button>
+                  </td>
+                </tr>
+              )
+            )}
             {products.length === 0 && <tr><td colSpan="6" className="muted">No products yet.</td></tr>}
           </tbody>
         </table>

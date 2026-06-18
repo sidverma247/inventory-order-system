@@ -20,6 +20,9 @@ class Settings(BaseSettings):
 
     app_name: str = "Inventory & Order Management API"
 
+    # Products at or below this stock level are flagged "low stock" on the dashboard.
+    low_stock_threshold: int = 10
+
     @property
     def cors_origin_list(self) -> list[str]:
         if self.cors_origins.strip() == "*":

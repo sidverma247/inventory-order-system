@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from .. import crud, schemas
 from ..database import get_db
 
-router = APIRouter(prefix="/api/products", tags=["products"])
+router = APIRouter(prefix="/products", tags=["products"])
 
 
 @router.get("", response_model=list[schemas.ProductOut])

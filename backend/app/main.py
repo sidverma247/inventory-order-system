@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
 from .database import Base, engine
-from .routers import customers, orders, products
+from .routers import customers, orders, products, stats
 
 settings = get_settings()
 
@@ -25,6 +25,7 @@ app.add_middleware(
 app.include_router(products.router)
 app.include_router(customers.router)
 app.include_router(orders.router)
+app.include_router(stats.router)
 
 
 @app.get("/health", tags=["health"])

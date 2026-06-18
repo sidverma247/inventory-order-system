@@ -19,18 +19,23 @@ A simplified, full-stack Inventory & Order Management System for managing
 | Unique customer email | `crud.create_customer` + DB unique index | Duplicate email → `409 Conflict` |
 | Inventory validation | `crud.create_order` | Order with qty > stock → `400 Bad Request`, nothing committed |
 | Automatic stock reduction | `crud.create_order` | On success, product stock is decremented atomically |
-| Order total calculation | `crud.create_order` | Total computed from each product's price × quantity |
+| Order total calculation | `crud.create_order` | Total computed by the backend from each product's price × quantity |
+| Stock restored on cancel | `crud.delete_order` | Cancelling an order returns its quantities to inventory |
+| Non-negative quantity | Pydantic `ge=0` validation | Stock can never be set or driven below zero |
 | Concurrency safety | `SELECT ... FOR UPDATE` | Product rows are locked during order placement |
 
-The UI has three tabs — **Products**, **Customers**, **Orders** — to create,
-list and delete records, and to place multi-line orders against live stock.
+The UI has four tabs:
+- **Dashboard** — totals for products / customers / orders and a low-stock list
+- **Products** — add, list, **edit** (name/price/stock) and delete
+- **Customers** — add, list and delete
+- **Orders** — place multi-line orders against live stock, view details, cancel
 
 ---
 
 ## Architecture
 
 ```
-┌────────────┐      /api/*       ┌────────────┐      SQL      ┌────────────┐
+┌────────────┐   /products,…     ┌────────────┐      SQL      ┌────────────┐
 │  Frontend  │  ───────────────▶ │  Backend   │ ───────────▶  │ PostgreSQL │
 │ React +    │   (nginx proxy)   │  FastAPI   │   psycopg3    │            │
 │ nginx      │ ◀───────────────  │            │ ◀───────────  │            │
@@ -46,7 +51,7 @@ inventory-order-system/
 │       ├── schemas.py  Pydantic request/response models
 │       ├── crud.py     business rules (unique keys, stock validation/reduction)
 │       └── routers/    products, customers, orders
-├── frontend/           React (Vite) SPA served by nginx, reverse-proxies /api
+├── frontend/           React (Vite) SPA served by nginx, reverse-proxies the API
 ├── docker-compose.yml  db + backend + frontend
 ├── render.yaml         one-click backend + Postgres deploy blueprint
 └── .env.example        configuration template
@@ -101,46 +106,54 @@ pytest
 ```
 
 ```
-test_unique_sku ......................... PASSED
-test_unique_email ....................... PASSED
-test_order_reduces_stock ................ PASSED
-test_order_rejected_when_insufficient_stock  PASSED
+test_unique_sku ............................. PASSED
+test_unique_email ........................... PASSED
+test_order_reduces_stock .................... PASSED
+test_order_rejected_when_insufficient_stock . PASSED
+test_cancel_order_restores_stock ............ PASSED
+test_stats .................................. PASSED
 ```
 
 ---
 
 ## API reference
 
-Base path: `/api`
+Resources are exposed at the root path (no prefix), matching the spec.
 
 ### Products
 | Method | Path | Body | Notes |
 |--------|------|------|-------|
-| GET | `/api/products` | — | list |
-| POST | `/api/products` | `{sku, name, description?, price, stock_quantity}` | 409 on duplicate SKU |
-| GET | `/api/products/{id}` | — | |
-| PUT | `/api/products/{id}` | partial product | |
-| DELETE | `/api/products/{id}` | — | |
+| GET | `/products` | — | list |
+| POST | `/products` | `{sku, name, description?, price, stock_quantity}` | 409 on duplicate SKU |
+| GET | `/products/{id}` | — | |
+| PUT | `/products/{id}` | partial product | |
+| DELETE | `/products/{id}` | — | |
 
 ### Customers
 | Method | Path | Body | Notes |
 |--------|------|------|-------|
-| GET | `/api/customers` | — | list |
-| POST | `/api/customers` | `{name, email, phone?, address?}` | 409 on duplicate email |
-| PUT | `/api/customers/{id}` | partial customer | |
-| DELETE | `/api/customers/{id}` | — | |
+| GET | `/customers` | — | list |
+| POST | `/customers` | `{name, email, phone?, address?}` | 409 on duplicate email |
+| GET | `/customers/{id}` | — | |
+| DELETE | `/customers/{id}` | — | |
 
 ### Orders
 | Method | Path | Body | Notes |
 |--------|------|------|-------|
-| GET | `/api/orders` | — | list with line items |
-| POST | `/api/orders` | `{customer_id, items:[{product_id, quantity}]}` | 400 if any item exceeds stock |
-| GET | `/api/orders/{id}` | — | |
+| GET | `/orders` | — | list with line items |
+| POST | `/orders` | `{customer_id, items:[{product_id, quantity}]}` | 400 if any item exceeds stock |
+| GET | `/orders/{id}` | — | |
+| DELETE | `/orders/{id}` | — | cancel order, restores stock |
+
+### Dashboard
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/stats` | totals + low-stock product list |
 
 Example — place an order:
 
 ```bash
-curl -X POST http://localhost:8000/api/orders \
+curl -X POST http://localhost:8001/orders \
   -H 'Content-Type: application/json' \
   -d '{"customer_id":1,"items":[{"product_id":1,"quantity":3}]}'
 ```
@@ -155,7 +168,8 @@ curl -X POST http://localhost:8000/api/orders \
 | `CORS_ORIGINS` | backend | `*` | comma-separated allowed origins |
 | `PORT` | backend | `8000` | port to bind (PaaS sets this) |
 | `POSTGRES_USER/PASSWORD/DB` | db | see `.env.example` | database bootstrap |
-| `BACKEND_URL` | frontend (nginx) | `http://backend:8000` | upstream the SPA proxies `/api` to |
+| `BACKEND_URL` | frontend (nginx) | `http://backend:8000` | upstream the SPA proxies API paths to |
+| `LOW_STOCK_THRESHOLD` | backend | `10` | dashboard low-stock cutoff |
 | `VITE_API_BASE_URL` | frontend build | empty | absolute API URL when frontend & backend are on different hosts |
 
 No secret is committed; `.env` is git-ignored.
