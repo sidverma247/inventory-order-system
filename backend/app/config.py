@@ -25,9 +25,12 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        if self.cors_origins.strip() == "*":
+        # Empty or "*" both mean "allow all" so a blank env var never silently
+        # blocks the frontend; otherwise use the comma-separated allow-list.
+        raw = self.cors_origins.strip()
+        if raw in ("", "*"):
             return ["*"]
-        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        return [o.strip() for o in raw.split(",") if o.strip()]
 
 
 @lru_cache

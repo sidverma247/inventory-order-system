@@ -22,4 +22,4 @@ services:
           name: inventory-db
           property: connectionString
       - key: CORS_ORIGINS
-        sync: false   # set to your deployed frontend origin
+        value: "*"    # open by default; tighten to your frontend origin later
